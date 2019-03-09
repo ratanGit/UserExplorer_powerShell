@@ -1,0 +1,127 @@
+#GET USER DATA------
+
+# F7. Get AD User Data:
+    function getADusr{
+    <# 
+    .SYNOPSIS
+        Finds a user in AD.
+        LASTUPDATE: Dec 10 2018
+        AUTHOR: Ratan Mohapatra
+    .EXAMPLE
+        PS>getADusr -user rmohapatra
+    .PARAMETER $user
+        UserID is INput - either SamAccountName or EMail
+    #>
+        [CmdletBinding()]
+        param([string]$user,$userAttribs,$groupAttribs,$ulMark ='~')
+        Process{
+            $strAcc = "AD Account Details:"
+            $ulAcc = $ulMark*$strAcc.Length
+            $strGroup = "AD Group Membership:"
+            $ulGroup =$ulMark*$strGroup.Length
+            $dt = get-date
+            try{
+                if(Get-ADDomain){
+                    $usrAccountData = get-aduser -filter {SamAccountName -eq $user} -properties *
+                    $data_LDAP = $usrAccountData | select $userAttribs | out-string
+                    if(!($usrAccountData)){throw "The user was not found!"}
+                    else{
+                        $usrGroupData = get-adprincipalgroupmembership $user | select $groupAttribs| ft -AutoSize | Out-String                
+                        }
+                    $res = "`r`n$dt`r`n`r`nAD - $strAcc : `r`n$ulAcc `n$data_LDAP `nAD - $strGroup `r`n$ulGroup `n$usrGroupData"
+                    #$res |clip
+                    #write-output $res
+                    #[System.Windows.Forms.Clipboard]::GetText()
+                    return $res
+                    }
+                else{
+                    throw 'The Script cannot find an Active Directory Domain!'
+                    }
+                $usr  = $null
+                }
+            catch{
+                Write-Error "$($_.Exception.Message) - Line Number: $($_.InvocationInfo.ScriptLineNumber)"
+                retutn
+                }
+            }
+        }
+
+# F8. Get onPrem Exchange User Data:
+    function getXchangeUsr{
+    <#
+    .SYNOPSIS
+        Retrive User mailbox data by SamAccount Name
+        LASTUPDATE: Dec 11 2018
+        .AUTHOR: Ratan Mohapatra
+    .PARAMETER $SamAccName 
+        SamAccountName
+    .PARAMETER $MailBoxAttributes
+        An array of Mailbox attributes
+    #>
+        [CmdletBinding()]
+        param([string]$SamAccName, $MailBoxAttributes)
+        process{
+            try{        
+                $m = Get-Mailbox $SamAccName | Select *
+                if($m){
+                    $usr_dat = $m | select $MailBoxAttributes | Out-String
+                    }   
+                return $usr_dat
+                }
+            catch{Write-Error "$($_.Exception.Message) - Line Number: $($_.InvocationInfo.ScriptLineNumber)"
+                return '0'
+                    } 
+            }
+        }
+
+# F9. Get onPrem Lync/Skype User Data:
+    function getLyncUsr{
+    <#
+    .SYNOPSIS
+        Retrive Lync User Acc data by SamAccount Name
+        LASTUPDATE: Dec 11 2018
+        .AUTHOR: Ratan Mohapatra
+    .PARAMETER $SamAccName 
+        SamAccountName
+    .PARAMETER $LyncAttributes
+        An array of Lync attributes
+    #>
+        [CmdletBinding()]
+        param([string]$SamAccName, $LyncAttributes)
+        process{
+            try{        
+                $lyncuser = Get-CsUser $SamAccName | select *
+                if($lyncuser){
+                    $usr_dat = $lyncuser| select $LyncAttributes | Out-string
+                    }   
+                return $usr_dat
+                }
+            catch{Write-Error "$($_.Exception.Message) - Line Number: $($_.InvocationInfo.ScriptLineNumber)"
+                return '0'
+                    } 
+            }
+        }
+
+# F10. Check account Lockout:
+    function chkLockedOrNot($usr){
+        $chk = chkEmail $usr
+        if(($chk -eq 1)){$samAcc = [string]$usr.Split('@')[0]}
+        else{$samAcc = $usr}
+        $usr = get-aduser $samAcc -Properties * | select *lock*
+        $lockStatus = $usr.LockedOut
+    if(!($lockStatus -eq $true)){
+            write-host @capgreen "`n`tThe Account is not locked ..dont waste my time :)!(: "  
+            }
+        else{
+            write-host @capcolor "`nHmm whats wrong with me .. your are right the Account is l o c k e d ):!:( "  
+            $ch = [int](Read-Host('Lets fix this: 1=yes 0=No') )
+            if($chk -eq 1){ Unlock-ADAccount $samAcc }
+            $usr = get-aduser $samAcc -Properties * | select *lock*
+            $lockStatus = $usr.LockedOut
+            if($lockStatus -eq $true){
+                write-host @capcolor "`nHmm whats wrong .... the Account is still l o c k e d ... let me check (zzzzzz) n get back to you ):!:( "
+                Unlock-ADAccount $samAcc
+                }
+            else{ write-host @capgreen " `nCool the Account is not locked nay-more ..have a great day! :)!(: " }
+            }
+    }
