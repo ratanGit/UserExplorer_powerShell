@@ -70,3 +70,12 @@
         }
     end{ return $sess }
     }
+
+# F13. Set existing conenctiosn to null:
+    function closeSessions($sess){
+        try{
+            Disconnect-AzureAD
+            $sess = $null
+            }
+        catch{}
+        }
