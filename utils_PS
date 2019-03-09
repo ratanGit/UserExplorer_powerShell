@@ -1,0 +1,121 @@
+#~~~~~~~~~~ UTILS: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# F1: CoolWrite define colors:
+    function coolWrite{
+    <#
+    .SYNOPSIS
+        Sets color schemes for Write
+        Ratan Mohapatra,Dec 2018
+    #>
+        [CmdletBinding()]
+        param(
+            [ValidateSet('Cyan','Green','Red','Yellow')][string]$color,
+            [string]$Message
+            )
+        begin{
+            $scheme =$null
+            $capred = @{BackgroundColor = "Red"; ForegroundColor = "white"}
+            $capcyan = @{BackgroundColor = "Cyan"; ForegroundColor = "white"}
+            $capgreen = @{BackgroundColor = "Green"; ForegroundColor = "white"}
+            $capYellow = @{BackgroundColor = "Yellow"; ForegroundColor = "Blue"}         
+            }
+        process{
+            try{
+                switch($color){
+                    'red'{$scheme = $capred}
+                    'green'{$scheme = $capgreen}
+                    'cyan' {$scheme =  $capcyan}
+                    'yellow' {$scheme =  $capYellow}
+                    }
+                Write-Host @scheme "`n$Message"
+                            $Message = $null       
+                }
+            catch{Write-Error "$($_.Exception.Message) - Line Number: $($_.InvocationInfo.ScriptLineNumber)"}         
+           }
+            end{}
+        }
+
+# F2. Create an output folder if not there:
+    function mkfolder{
+    <#
+    .SYNOPSIS
+        Create an Output folder
+    #>
+        [CmdletBinding()]
+        param( [string]$FolderPath )
+        begin{$itmType = "directory"}
+        process{
+            try{
+                if (!(Test-Path $FolderPath)){
+                    new-item -Path $FolderPath -ItemType $itmType -Force
+                    coolWrite -color yellow -Message 'Cool you have a PS OutPut folder on your Desktop!'
+                    }
+                }
+            catch{
+                Write-Error "$($_.Exception.Message) - Line Number: $($_.InvocationInfo.ScriptLineNumber)"
+                return
+                }
+                }
+        end{}
+        }
+
+# F3. Write to output File:
+    function write2File(){
+    <#
+    .SYNOPSIS
+        Writes to a text file
+        LASTUPDATE: Dec 11 2018
+        .AUTHOR: Ratan Mohapatra
+    .PARAMETER $FilePath
+        File Path
+    .PARAMETER $SectionHeader
+        Header fpr the section
+    .PARAMETER $UserData
+        UserAccountData
+    #>
+        [CmdletBinding()]
+        param(
+            [string]$FilePath,
+            [string]$SectionHeader,
+            [string]$UserData
+            )
+        process{
+            try{
+                if(Test-Path $FilePath){
+                    $SectionHeader | out-file $FilePath -Append
+                    $UserData | Out-File -FilePath $FilePath -Append     
+                    }
+                return
+                }
+            catch{
+                Write-Error "$($_.Exception.Message) - Line Number: $($_.InvocationInfo.ScriptLineNumber)"
+                return
+                }
+            }
+        }
+
+# F4. Check user string to see if Email address:
+    function CheckUserString{
+    <#
+    .SYNOPSIS
+        Checks a String for email and extracts the SamAccoutName
+        LASTUPDATE: Dec 10 2018
+        .AUTHOR: Ratan Mohapatra
+    .PARAMETER $usrIDString
+        The user ID string in username or Email Format
+    #>
+        [CmdletBinding()]
+        param( [string]$usrIDString )
+        process{
+            try{
+                if(!(([regex]::match($usrIDString,"@")).success)){
+                    return @($usrIDString,'0')
+                    }
+                else{
+                    $usrIDArray = $usrIDString.Split('@')
+                    return $usrIDArray
+                    }                      
+                }
+            catch{Write-Error "$($_.Exception.Message) - Line Number: $($_.InvocationInfo.ScriptLineNumber)"}         
+           }
+        }
