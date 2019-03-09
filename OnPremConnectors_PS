@@ -1,0 +1,72 @@
+#~~~~~~~~~~ ON-PREM SERVICES: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# F5. Connect to onPrem Xchange:
+    function ConneXchngeOnPrem(){
+    <#
+    .SYNOPSIS
+        Connects to On Prem Exchange Server
+        LASTUPDATE: Dec 11 2018
+        .AUTHOR: Ratan Mohapatra
+    .PARAMETER $ExchangeServer
+        Exchange Server Address
+    .PARAMETER $Cred
+        Admin Credential
+    #>
+        [CmdletBinding()]
+        param(
+            [string]$ExchangeServer,
+            $Cred
+            )
+        begin{$uri = "http://$ExchangeServer/powershell"}
+        process{
+            try{
+                $sess = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionURI $uri -Credential $cred
+                if($sess){
+                    Import-PSSession $sess -AllowClobber
+                    Set-AdServerSettings -ViewEntireForest $True
+                    return $sess
+                    }
+                }
+            catch{
+                Write-Error "$($_.Exception.Message) - Line Number: $($_.InvocationInfo.ScriptLineNumber)"
+                retrun
+                }
+            }
+            end{}
+        }
+
+# F6. Connect to onPrem Lync/Skype:
+    function ConnectLyncOnPrem(){
+    <#
+    .SYNOPSIS
+        Connects to On Prem Lync Server
+        LASTUPDATE: Dec 11 2018
+        .AUTHOR: Ratan Mohapatra
+        ref: https://github.com/Microsoft/MIMPowerShellConnectors/wiki/Lync-Connector-Configuration
+    .PARAMETER $LyncServer 
+        Lync Server Address
+    .PARAMETER $Cred
+        Admin Credential
+    #>
+        [CmdletBinding()]
+        param(
+            [string]$LyncServer,
+            $Cred
+            )
+        begin{$uri = "https://$LyncServer/OcsPowerShell"}
+        process{
+            try{
+                $skipCertificate = New-PSSessionOption -SkipCACheck -SkipCNCheck -SkipRevocationCheck   #addedd this for the cert issue in Lync Server
+                $sess = New-PSSession -ConnectionURI $uri -Credential $cred -SessionOption $skipCertificate
+                if($sess){
+                    Import-PSSession $sess -AllowClobber
+                    return $sess
+                    }
+                }
+            catch{
+                Write-Error "$($_.Exception.Message) - Line Number: $($_.InvocationInfo.ScriptLineNumber)"
+                retrun
+                }
+            }
+            end{}
+        }
