@@ -1,0 +1,72 @@
+#~~~~~~~~~~ ONLINE SERVICES: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# F11. Connect to Azure:
+    function Conn_2Azure(){
+    <#
+    .SYNOPSIS
+        Connects to Azure for all available services
+        LASTUPDATE: Feb 19 2019
+        .AUTHOR: Ratan Mohapatra
+        PowerShell Version1 connects to MSOL Connector, while PowerShell V2 uses AzureAD connector
+        Note you have to use -OverrideAdminDomain for the Hybrid- I Use $serviceType to do this
+        #https://technet.microsoft.com/library/dn362831.aspx
+    .PARAMETER $AzureDomain 
+        Azure Domain
+    .PARAMETER $serviceType
+        Whether Hybrid or Cloud ony
+    .PARAMETER $AZCredential
+        Admin Credential for Azure
+    .PARAMETER $AZCredential
+        Admin Credential for Azure
+    #>
+    [CmdletBinding()]
+    param(
+        [string]$AzureDomain,
+        [int]$serviceType,
+        [string]$AZCredential,
+        [string]$AZConnType,
+        [string]$xchangeURI
+        )
+    begin{ $sess ="" }
+    process{            
+        try{
+            switch($AZConnType){
+                #Azure OL
+                'azur'{
+                    $sess = Connect-azuread -Credential $AZCredential 
+                    if($sess -ne ""){ write-host "`n>: welcome to Azure AD! `n" }
+                    }
+                #MSOL
+                'msOL'{
+                    $sess = Connect-MsolService -Credential $AZCredential
+                    if($sess -ne ""){ write-host "`n>: welcome to MS Online! `n" }    
+                    }
+                #Skype OL
+                'skypOL'{
+                    if($serviceType -eq 1){
+                        $sess = New-CsOnlineSession -Credential $AZCredential -OverrideAdminDomain $AzureDomain
+                        }
+                    else{ $sess = New-CsOnlineSession -Credential $AZCredential }
+                    
+                    if($sess -ne ""){
+                        Import-PSSession $sess -AllowClobber
+                        write-host "`n>: welcome to Skype Online! `n"
+                        }                      
+                    }
+                #Exchange OL
+                'xchOL'{
+                    $uri = "https://$xchangeURI/powershell-liveid"
+                    $sess = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri $uri -Credential $AZCredential -Authentication Basic -AllowRedirection
+                    if($sess -ne ""){
+                        Import-PSSession $sess -DisableNameChecking  #Import-PSSession $Session -DisableNameChecking
+                        write-host "`n>: welcome to Exchange Online! `n"
+                        }
+                    }                                    
+               }
+            }
+        catch{
+            Write-Error "$($_.Exception.Message) - Line Number: $($_.InvocationInfo.ScriptLineNumber)"
+            }
+        }
+    end{ return $sess }
+    }
