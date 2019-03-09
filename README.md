@@ -11,3 +11,10 @@ What you need:
 4. MSOL- Install-Module -Name MSOnline: https://www.powershellgallery.com/packages/MSOnline/1.1.183.17 
 5. Skype For Business Online Module : https://www.microsoft.com/en-us/download/details.aspx?id=39366 
  
+Structure:
+----------
+
+1. Get Static Data
+2. Utility functions- Csometics, create output data folder abd Check user ID strings to extract username.
+3. On Prem Connectors
+4. Azure / O365 connectors
