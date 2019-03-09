@@ -1,0 +1,251 @@
+function UserExplorer{
+
+<#
+.SYNOPSIS
+    LASTUPDATE: Dec 10 2018
+    AUTHOR: Ratan Mohapatra
+    1.Authenticates to Azure AD, MSOL, and Skype Online and creates sessions
+    2.Authenticates to onprem Exchnage, and Lync and creates sessions
+    3.Retrives User information from LDAP, Exchange, Lync, Azure AD, MSOL and Skype OL
+    4.Stores data in a text file on the desktop of the admin in a folder categries by the date of run.
+    
+    FUTURE_DEVELOPMENT:
+        1.Log to an Excel file
+        2.Integrate with Accunt termination script.
+
+.PARAMETER $usrString
+    The user ID string in username or Email Format
+#>
+    [CmdletBinding()]
+    param([string]$UserID,[string]$UsrDomain = '@myemail.edu')
+    
+    begin{CLS
+        $dt = (get-date -UFormat "%Y-%m-%d").ToString()
+        $CloudTyp = 1 # !;Hybrid 0:Cloud This dictates how you conenct to the MSOL 
+        #prepare folder string
+        $pth = "$env:userprofile\desktop\Ratan_PowerShell_output"
+        $fldrPath = $pth + '\' + $dt
+        mkfolder $fldrPath
+
+    # 1.Derive User:
+        $adUser = $env:USERNAME
+        $adAdminUser = $dom_admin + '\'+ $adUsr + '_adm'
+        $UserEmail = $adUser +'@'+ $dom
+
+    # 2. messgae
+        $msg = "`n$dt `nWelcome to the PowerShell Account Explorer (PSAE) by Ratan Mohapatra. `nThis program lets you connect to Office 365, Skype Online, and onpremise Exchnage and Lync.`
+    `nYou are using this as $adUser | $adAdminUser | $UserEmail. `nIt is also required to have AD_RSAT `nAzure AD modules (Install-Module -Name AzureAD : https://docs.microsoft.com/en-us/office365/enterprise/powershell/connect-to-office-365-powershell) `
+    `nMSOL- Install-Module -Name MSOnline: https://www.powershellgallery.com/packages/MSOnline/1.1.183.17 `
+    `nSkype For Business Online Module : https://www.microsoft.com/en-us/download/details.aspx?id=39366 `
+    `nIf you are not ready please select option 0 and come back after you have the modules installed. `n"
+
+    # 3. Define Search Filters:
+        $Attrib_Cmp = @('name','enabled', 'LastLogonDate','OperatingSystem','IPv4Address','DNSHostName','OperatingSystemVersion','OperatingSystemHotfix','OperatingSystemServicePack','SamAccountName',`
+                    'City','location','Description', 'Created','DistinguishedName','servicePrincipalName','AccountLockoutTime')
+
+        $Attrib_LDAPUser = @('name','enabled','AccountExpirationDate','LastLogonDate','LockedOut', 'City', 'Title','extensionAttribute10','extensionAttribute9','Manager', 'Description','Department','SamAccountName', 'Created','msExchWhenMailboxCreated',`
+                    'msExchHomeServerName','PasswordLastSet','LastBadPasswordAttempt','AccountLockoutTime', `
+                    'LineURI','msRTCSIP-Line','msRTCSIP-UserEnabled','UserPrincipalName', 'DistinguishedName')
+
+        $Attrib_LDAPGroup = @('name', 'GroupCategory', 'distinguishedName')
+
+        $Attrib_XchUser = @('DisplayName','Database','PrimarySmtpAddress','WhenMailboxCreated','WhenChanged','IsMailboxEnabled','IsInactiveMailbox','IsValid',`
+                    'SamAccountName','UserPrincipalName','OrganizationalUnit','Identity','DistinguishedName','ForwardingAddress')
+
+        $Attrib_LyncUser = @('name', 'SamAccountName', 'enabled','WhenCreated', 'LineURI', 'SipAddress', 'EnabledForFederation', 'EnabledForInternetAccess', `
+                    'PublicNetworkEnabled','EnterpriseVoiceEnabled')
+
+        $Attrib_MSOlUser = @('DisplayName','Title','city','IsLicensed','ValidationStatus','LastDirSyncTime', 'UserPrincipalName','LastPasswordChangeTimestamp','Licenses', `
+                    'WhenCreated','ProxyAddresses')
+
+        $Attrib_SkypUser = @('DisplayName','Title','Enabled','WhenCreated','IsValid','VoicePolicy','UserPrincipalName','SamAccountName','LineURI','SipAddress', `
+                    'RegistrarPool','OnPremLineURI','HostedVoiceMail','ServiceInstance','LastSyncTimeStamp','UserProvisonType','lastProvisionTimeStamp', `
+                    'LastPublishTimeStamp','LastSubProvisionTimeStamp','InterpretedUserType','DirSyncEnabled','OriginatingServer','HostingProvider')
+
+        $Attrib_AzrUser = @('DisplayName','JobTitle','City','Department','AccountEnabled','DirSyncEnabled','LastDirSyncTime','UserPrincipalName','Mail', `
+                    'PasswordPolicies','ProvisionedPlans')    
+    # User Options
+        $arrOptions=@(
+        'Let me Out Of Here!'
+        'Connect to Exchange & Lync',
+        'Connect to Exchange Online',
+        'Authenticate to Azure, Office365 and Skype',
+        'Fetch User Data',
+        'Check If Locked!',
+        'Close all Connections'
+        )    
+    
+    # Data Sources:
+        $usrDataSource=@('ALL','{AD+Azure+MSOL+SkypeOL}','AD-Only','Exchange-Only','Lync-Only')
+        
+    # misc
+        $ulMark ='~'
+        }
+    process{
+
+        try{
+            coolWrite -Message $msg
+            $i = 0
+            foreach ($option in $arrOptions){
+                coolwrite -color yellow -Message "$i : $option"
+                $i++
+                }              
+            $opt = [int](Read-Host("`nPlease make your selection "))                          
+            
+     # Jobs:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            switch($opt){
+            
+        #Quit            
+            0{
+                Write-Host "`nNo problem, Have a great day!`n"
+                exit 
+                }
+
+        # OnPrem Exchange & Lync
+            1{
+                if(!($cred)){
+                    $chk = [int](Read-Host 'You Do not have a valid Credential do you want to add 1=yes | 0=no ')
+                    if($chk -eq 1){
+                        $cred = Get-Credential -Message "Please sign in with your DomainAdmin Credential"
+                        }
+                    }
+                else{
+                    $chk = [int](Read-Host 'You Do you want to Change the AD Credential 1=yes | 0=no ')
+                    if($chk -eq 1){
+                        $cred = Get-Credential -Message "Please sign in with your AD Admin Credential"
+                        }
+                    }
+                $ExchSession = ConneXchngeOnPrem $ExchangeServer $cred
+                $LyncSession = ConnectLyncOnPrem $LyncServer $cred
+                try {get-exchangeserver}
+                catch{Write-Error "$($_.Exception.Message) - Line Number: $($_.InvocationInfo.ScriptLineNumber)"}
+                }     
+
+        # Exchange Online         
+            2{
+                if(!($AZCred)){
+                    $chk = [int](Read-Host 'You Donot have a valid Azure Credential do you want to add 1=yes | 0=no ')
+                    if($chk -eq 1){
+                        $azcred = Get-Credential -Message "Please sign in with your Azure Credential" -UserName $me
+                        }
+                    }
+                # Added this as sometimes, I was stuck with a wrong passwd!
+                else{
+                    $chk = [int](Read-Host 'Do you want to Change the Azure Credential 1=yes | 0=no ')
+                    if($chk -eq 1){
+                        $AZcred = Get-Credential -Message "Please sign in with your Azure Credential"
+                        }
+                    }
+                
+                $azSession = ConnectAzure -AZCredential $AZCred
+                if(ConnectAzure -AZCredential $AZCred){
+                    if(connectMSOL -AZCredential $AZCred){
+                        $CSSession = ConnectSkypeOL -AzureDomain $azDomain -serviceType $CloudTyp -AZCredential $AZCred
+                        }
+                    }
+                
+                }
+
+
+            3{         
+                if(!($AZCred)){
+                    $chk = [int](Read-Host 'You Donot have a valid Azure Credential do you want to add 1=yes | 0=no ')
+                    if($chk -eq 1){
+                        $azcred = Get-Credential -Message "Please sign in with your Azure Credential"
+                        }
+                    }
+                else{
+                    $chk = [int](Read-Host 'Do you want to Change the Azure Credential 1=yes | 0=no ')
+                    if($chk -eq 1){
+                        $AZcred = Get-Credential -Message "Please sign in with your Azure Credential"
+                        }
+                    }
+                if(ConnectAzure -AZCredential $AZCred){
+                    if(connectMSOL -AZCredential $AZCred){
+                        $CSSession = ConnectSkypeOL -AzureDomain $azDomain -serviceType $CloudTyp -AZCredential $AZCred
+                        }
+                    }
+                }
+    
+            4{
+                $usr = [string](Read-Host("`n`nCan I have the email ID / username of the user? e.g., me@mymail.edu or rmohapatra "))
+                $usr = $usr.Trim()                        
+
+               #check for email string 
+                $chkString = CheckUserString -usrIDString $usr
+                $samAcc = $chkString[0]
+                if($chkString[1] -eq '0'){
+                    if($UsrDomain -eq '@myemail.edu'){
+                        coolwrite -color red -Message "Seems like you do not have a User Domain Set unless it is $UsrDomain !"
+                        $UsrDomain = Read-Host 'What is your Email domain, e.g., myemail.edu '
+                        $UsrEmail = $samAcc +'@'+ $UsrDomain
+                        }  
+                    }
+               #define storage
+                $fl_summ = $fldrPath + '\'+ $UsrEmail +'_Summary.txt'              
+               "A SUMMARY of USER ACCOUNT DATA FOR $UsrEmail :`n" > $fl_summ
+
+               #AD                     
+                $usrData = getADusr -user $samAcc -userAttribs $Attrib_LDAPUser -groupAttribs $Attrib_LDAPGroup -ulMark $ulMark | Out-String
+                $hdr = [string](Get-Date) + " :: LDAP SUMMARY DATA for $UsrEmail :"
+                $hdr = "`r`n$hdr`r`n" + $ulMark*$hdr.Length +"`r`n"
+                write2File -FilePath $fl_summ -SectionHeader $hdr -UserData $usrData
+               
+               #EXCHANGE
+                $usrData = getXchangeUsr -SamAccName $samAcc -MailBoxAttributes $Attrib_XchUser
+                $hdr = ""
+                $hdr = [string](Get-Date) + " :: Exchange SUMMARY DATA for $UsrEmail"
+                $hdr = "`r`n$hdr`r`n" + $ulMark*$hdr.Length +"`r`n"
+                write2File -FilePath $fl_summ -SectionHeader $hdr -UserData $usrData
+                
+               #LYNC
+                $usrData = getLyncUsr -SamAccName $samAcc -LyncAttributes $Attrib_LyncUser
+                $hdr = ""
+                $hdr = [string](Get-Date) + " :: Lync SUMMARY DATA for $UsrEmail"
+                $hdr = "`r`n$hdr`r`n" + $ulMark*$hdr.Length +"`r`n"
+                write2File -FilePath $fl_summ -SectionHeader $hdr -UserData $usrData
+
+               #AZURE AD
+                $usrData =""
+                $hdr=""
+                $usrData = getAZUsr -UserEmail $UsrEmail -AZureAttributes $Attrib_AzrUser
+                $hdr = [string](Get-Date) + " :: Azure SUMMARY DATA for $UsrEmail"
+                $hdr = "`r`n$hdr`r`n" + $ulMark*$hdr.Length +"`r`n"
+                write2File -FilePath $fl_summ -SectionHeader $hdr -UserData $usrData
+               
+               #MSOL
+                $usrData =""
+                $hdr=""
+                $usrData = getMSOLUsr -UserEmail $UsrEmail -MSOLAttributes $Attrib_MSOlUser
+                $hdr = [string](Get-Date) + " :: MSOL SUMMARY DATA for $UsrEmail"
+                $hdr = "`r`n$hdr`r`n" + $ulMark*$hdr.Length +"`r`n"
+                write2File -FilePath $fl_summ -SectionHeader $hdr -UserData $usrData
+               
+               #Skype OL
+                $usrData =""
+                $hdr=""                    
+                $usrData = getSkypOLUsr -UserEmail $UsrEmail -SkypeOLAttributes $Attrib_SkypUser
+                $hdr = [string](Get-Date) + " :: SkypeOL SUMMARY DATA for $UsrEmail"
+                $hdr = "`r`n$hdr`r`n" + $ulMark*$hdr.Length +"`r`n"
+                write2File -FilePath $fl_summ -SectionHeader $hdr -UserData $usrData
+                
+                try{notepad $fl_summ}
+                catch{}
+                }
+            5{ $usr = [string](read-host("`n`n`tWhat will be the username e.g.xxx in xxx@myemail.edu"))
+               $usr = $usr.Trim()
+               $samAcc = (CheckUserString -usrIDString $usr)[0]
+               chkLockedOrNot $samAcc
+               }
+
+            6{closeSessions}
+            }
+            }
+        catch{Write-Error "$($_.Exception.Message) - Line Number: $($_.InvocationInfo.ScriptLineNumber)"
+        return
+        }
+        }
+    end{}
+    } #function
+    
+    UserExplorer
