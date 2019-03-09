@@ -1,0 +1,58 @@
+# F12. Get Online User accoutn data: do here----------------------------------------->>
+
+function getAZUsr{
+    <#
+    .SYNOPSIS
+        Retrive Azure User Acc data by Email ID
+        LASTUPDATE: Dec 11 2018
+        .AUTHOR: Ratan Mohapatra
+    .PARAMETER $UserEmail 
+        Email ID
+    .PARAMETER $AZureAttributes
+        An array of AZUre Acc attributes
+    .Examples
+        $u = 'you@yourdomain.com'
+        Get-AzureADUserAppRoleAssignment -ObjectId $u
+        $mem = Get-AzureADUserMembership -ObjectId $u
+        $mem | select Displayname,securityenabled
+        Get-AzureADUserOAuth2PermissionGrant -ObjectId $u
+        Get-AzureADUserRegisteredDevice -ObjectId $u
+        Get-AzureADUserThumbnailPhoto -ObjectId $u
+    #>
+    [CmdletBinding()]
+    param([string]$AZConnType,
+        [string]$UserEmail, 
+        $AccAttributes)
+    begin{$AccData = ""}
+    process{
+        try{
+            Switch($AZConnType){
+                #azure Acc
+                'azur'{
+                    $filterstr = "userPrincipalName eq '" + $UserEmail + "'"
+                    $AccData = Get-AzureADUser -Filter $filterstr | select *
+                    }
+                #MSOL Acc
+                'msOL'{
+                    $usrSearchHash = @{UserPrincipalName = $UserEmail}
+                    $AccData = Get-msolUser @usrSearchHash  | select *
+                    }
+                #Skype OL
+                'skypOL'{
+                    $skUserhash = @{Identity = "$UserEmail"}
+                    $AccData = Get-CsOnlineUser @skUserhash | select *
+                    }
+                #Exchange OL
+                'xchOL'{}
+                }
+            if($AccData -ne ""){
+                $usr_dat = $AccData | select $AccAttributes | Out-string
+                return $usr_dat
+                }  
+            }
+        catch{Write-Error "$($_.Exception.Message) - Line Number: $($_.InvocationInfo.ScriptLineNumber)"
+            return '0'
+                }
+        }
+    end{}
+    }
