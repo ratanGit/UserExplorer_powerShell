@@ -4,8 +4,15 @@
     function coolWrite{
     <#
     .SYNOPSIS
-        Sets color schemes for Write
-        Ratan Mohapatra,Dec 2018
+        Sets color schemes for Write-host outputs. Uses the schemes defined in begin{}
+        Ratan Mohapatra, March 10 2019
+    .Parameter $color
+        color of background. The text coolor is always white except when the backgroud is yellow (text = blue).
+    .Parameter $Message
+        The Text to be colored  
+    .Examples
+        coolwrite -color Red -Message "Hi, This text will be with Red BG"
+    
     #>
         [CmdletBinding()]
         param(
@@ -30,7 +37,8 @@
                 Write-Host @scheme "`n$Message"
                             $Message = $null       
                 }
-            catch{Write-Error "$($_.Exception.Message) - Line Number: $($_.InvocationInfo.ScriptLineNumber)"}         
+            catch{Write-Error "$($_.Exception.Message) - Line Number: $($_.InvocationInfo.ScriptLineNumber)"}
+            finally{}        
            }
             end{}
         }
