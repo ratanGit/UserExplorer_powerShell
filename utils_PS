@@ -84,29 +84,34 @@
     function write2File(){
     <#
     .SYNOPSIS
-        Writes to a text file
-        LASTUPDATE: Dec 11 2018
-        .AUTHOR: Ratan Mohapatra
-    .PARAMETER $FilePath
-        File Path
-    .PARAMETER $SectionHeader
-        Header fpr the section
-    .PARAMETER $UserData
-        UserAccountData
+        Write data to a text file.
+    .DESCRIPTION
+        Appends data to a log file.
+    .PARAMETER FilePath
+        Complete file path.
+    .PARAMETER HeaderCaption
+        Header for each section of output data.
+    .PARAMETER WriteText
+        Text to be written.
+    .EXAMPLE
+        write2File -FilePath $env:userprofile\desktop\output.txt -HeaderCaption "Active Directory User Account Data" -WriteText $res
+    .NOTES
+        Author: Ratan Mohapatra
+        Last Update: March 10, 2019
     #>
         [CmdletBinding()]
         param(
             [string]$FilePath,
-            [string]$SectionHeader,
-            [string]$UserData
+            [string]$HeaderCaption,
+            [string]$WriteText
             )
         process{
             try{
                 if(Test-Path $FilePath){
-                    $SectionHeader | out-file $FilePath -Append
-                    $UserData | Out-File -FilePath $FilePath -Append     
+                    $HeaderCaption | out-file $FilePath -Append
+                    $WriteText | Out-File -FilePath $FilePath -Append     
                     }
-                return
+                return "Witten to the Output file!"
                 }
             catch{
                 Write-Error "$($_.Exception.Message) - Line Number: $($_.InvocationInfo.ScriptLineNumber)"
