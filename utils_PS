@@ -7,19 +7,25 @@
         Sets color schemes for Write-host outputs.
     .DESCRIPTION
         Uses the schemes defined in begin{}
-    .PARAMETER color
+    .PARAMETER Color
         color of background. The text coolor is always white except when the backgroud is yellow (text = blue).
     .PARAMETER Message
         The Text to be colored  
     .EXAMPLE
-        coolwrite -color Red -Message "Hi, This text will be with Red BG"
+        coolwrite -Color Red -Message "Hi, This text will be with Red BG"
+        Or, using spalt:
+        $myarg = @{
+            color = 'Red'
+            Message = "Hi, This text will be with Red BG"
+            }
+        coolWrite @myarg        
     .NOTES
         Author: Ratan Mohapatra
         Last Update: March 10, 2019
     #>
         [CmdletBinding()]
         param(
-            [ValidateSet('Cyan','Green','Red','Yellow')][string]$color,
+            [ValidateSet('Cyan','Green','Red','Yellow')][string]$Color,
             [string]$Message
             )
         begin{
