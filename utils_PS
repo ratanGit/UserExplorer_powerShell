@@ -4,15 +4,18 @@
     function coolWrite{
     <#
     .SYNOPSIS
-        Sets color schemes for Write-host outputs. Uses the schemes defined in begin{}
-        Ratan Mohapatra, March 10 2019
-    .Parameter $color
+        Sets color schemes for Write-host outputs.
+    .DESCRIPTION
+        Uses the schemes defined in begin{}
+    .PARAMETER color
         color of background. The text coolor is always white except when the backgroud is yellow (text = blue).
-    .Parameter $Message
+    .PARAMETER Message
         The Text to be colored  
-    .Examples
+    .EXAMPLE
         coolwrite -color Red -Message "Hi, This text will be with Red BG"
-    
+    .NOTES
+        Author: Ratan Mohapatra
+        Last Update: March 10, 2019
     #>
         [CmdletBinding()]
         param(
@@ -48,10 +51,15 @@
     <#
     .SYNOPSIS
         Create a folder.
-    .PARAMETER $FolderPath
+    .DESCRIPTION
+        Creates a folder if it does not exist.
+    .PARAMETER FolderPath
         full path e.g., c:\myshare\output
-    .EXAMPLES
+    .EXAMPLE
         makeFolder -FolderPath c:\myshare
+    .NOTES
+        Author: Ratan Mohapatra
+        Last Update: March 10, 2019
 
     #>
         [CmdletBinding()]
@@ -71,7 +79,7 @@
                 }
         end{}
         }
-
+        
 # F3. Write to output File:
     function write2File(){
     <#
