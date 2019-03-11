@@ -167,7 +167,7 @@
         }
 
 # F5. Check user string to see if Email address:
-    function getSamAccountName{
+    function getUserAccountID{
     <#
     .SYNOPSIS
         Checks a String of username or email and extracts the SamAccoutName.
