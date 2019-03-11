@@ -44,24 +44,29 @@
         }
 
 # F2. Create an output folder if not there:
-    function mkfolder{
+    function makeFolder{
     <#
     .SYNOPSIS
-        Create an Output folder
+        Create a folder.
+    .PARAMETER $FolderPath
+        full path e.g., c:\myshare\output
+    .EXAMPLES
+        makeFolder -FolderPath c:\myshare
+
     #>
         [CmdletBinding()]
         param( [string]$FolderPath )
-        begin{$itmType = "directory"}
+        begin{$itemType = "directory"}
         process{
             try{
                 if (!(Test-Path $FolderPath)){
-                    new-item -Path $FolderPath -ItemType $itmType -Force
-                    coolWrite -color yellow -Message 'Cool you have a PS OutPut folder on your Desktop!'
+                    new-item -Path $FolderPath -ItemType $itemType -Force
+                    return $true
                     }
                 }
             catch{
                 Write-Error "$($_.Exception.Message) - Line Number: $($_.InvocationInfo.ScriptLineNumber)"
-                return
+                return $false
                 }
                 }
         end{}
