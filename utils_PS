@@ -121,17 +121,23 @@
         }
 
 # F4. Check user string to see if Email address:
-    function CheckUserString{
+    function getSamAccountName{
     <#
     .SYNOPSIS
-        Checks a String for email and extracts the SamAccoutName
-        LASTUPDATE: Dec 10 2018
-        .AUTHOR: Ratan Mohapatra
-    .PARAMETER $usrIDString
-        The user ID string in username or Email Format
+        Checks a String of username or email and extracts the SamAccoutName.
+    .DESCRIPTION
+        Used with get-aduser accepts both SamAccoutName and userprincipalname. Extracts the SamAccountName.
+        [Regex]::match
+    .PARAMETER UserIDString
+        SamAccountName or Email.
+    .EXAMPLE
+        getSamAccountName -UserIDString me@myemail.com
+    .NOTES
+        Author: Ratan Mohapatra
+        Last Update: March 10, 2019    
     #>
         [CmdletBinding()]
-        param( [string]$usrIDString )
+        param( [string]$UserIDString )
         process{
             try{
                 if(!(([regex]::match($usrIDString,"@")).success)){
