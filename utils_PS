@@ -126,7 +126,47 @@
             }
         }
 
-# F4. Check user string to see if Email address:
+# F4. Pick a file:
+    Function pickFile(){
+    <#
+    .SYNOPSIS
+        PIck a file from the file to process.
+    .DESCRIPTION
+        Uses Windows File box to pick a file.
+    .PARAMETER FileType
+        color of background. The text coolor is always white except when the backgroud is yellow (text = blue).
+    .EXAMPLE
+        pickFile -FileType TXT
+    .NOTES
+        Author: Ratan Mohapatra
+        Last Update: March 10, 2019
+    #>
+        [CmdletBinding()]
+        param(
+            [ValidateSet('CSV','Text')][string]$FileType,
+            [string]$initialDirectory = "$env:USERPROFILE\desktop" 
+            )
+        begin{
+            [System.Reflection.Assembly]::LoadWithPartialName("System.windows.forms") | Out-Null
+            $OpenFileDialog = New-Object System.Windows.Forms.OpenFileDialog
+            $OpenFileDialog.initialDirectory = $initialDirectory        
+            }
+        Process{
+            switch($FileType){
+                'CSV'{ $OpenFileDialog.filter = "CSV (*.csv)| *.csv" }
+                'TXT'{ $OpenFileDialog.filter = "TXT (*.txt)| *.txt" }
+                }
+            try{
+                $OpenFileDialog.ShowDialog() | Out-Null
+                return $OpenFileDialog.filename
+                }
+            catch{ Write-Error "$($_.Exception.Message) - Line Number: $($_.InvocationInfo.ScriptLineNumber)" }
+            finally{}
+            }
+        end{}
+        }
+
+# F5. Check user string to see if Email address:
     function getSamAccountName{
     <#
     .SYNOPSIS
