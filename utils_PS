@@ -1,46 +1,5 @@
 #~~~~~~~~~~ UTILS: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# F1: CoolWrite define colors:
-    function coolWrite{
-    <#
-    .SYNOPSIS
-        Sets color schemes for Write-host outputs.
-    .DESCRIPTION
-        Uses the schemes defined in begin{}
-    .PARAMETER Color
-        color of background. The text coolor is always white except when the backgroud is yellow (text = blue).
-    .PARAMETER Message
-        The Text to be colored  
-    .EXAMPLE
-        coolwrite -BGColor Green -FontColor red -Message2Write "hi me"
-        Or, using spalt:
-        $myarg = @{
-            BGColor = 'Red'
-            FontColor = 'White'
-            Message2Write = "Hi, This text will be with Red BG"
-            }
-        coolWrite @myarg        
-    .NOTES
-        Author: Ratan Mohapatra
-        Last Update: March 10, 2019
-    #>
-        [CmdletBinding()]
-        param(
-                [Parameter(Mandatory=$false)][ValidateSet('Cyan','Green','Red','Yellow', 'White')][string]$BGColor = 'White',
-                [Parameter(Mandatory=$false)][ValidateSet('Black','Blue', 'Cyan','Green','Red','Yellow','White')][string]$FontColor = 'Blue',
-                [Parameter(Mandatory=$true)][string]$Message2Write
-                )
-            begin{$scheme =$null 
-                $scheme = @{BackgroundColor = $BGColor; ForegroundColor = $FontColor}
-                }
-            process{
-                try{Write-Host @scheme "`n`n $Message2Write "}
-                catch{Write-Error "$($_.Exception.Message) - Line Number: $($_.InvocationInfo.ScriptLineNumber)"}
-                finally{}
-                }
-            end{}
-            }
-
 # F2. Create an output folder if not there:
     function makeFolder{
     <#
