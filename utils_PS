@@ -26,7 +26,7 @@
         [CmdletBinding()]
         param(
                 [Parameter(Mandatory=$false)][ValidateSet('Cyan','Green','Red','Yellow', 'White')][string]$BGColor = 'White',
-                [Parameter(Mandatory=$false)][ValidateSet('Blue', 'Cyan','Green','Red','Yellow','White')][string]$FontColor = 'Blue',
+                [Parameter(Mandatory=$false)][ValidateSet('Black','Blue', 'Cyan','Green','Red','Yellow','White')][string]$FontColor = 'Blue',
                 [Parameter(Mandatory=$true)][string]$Message2Write
                 )
             begin{$scheme =$null 
