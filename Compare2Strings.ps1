@@ -1,5 +1,5 @@
 # While learning HASH and Regex I jotetd down ideas and notes to the following 2 functions. The two functions shoudl be run 
-from the same lcoation (file).
+#from the same lcoation (file).
 
 
 function chkHash{
