@@ -25,32 +25,20 @@
     #>
         [CmdletBinding()]
         param(
-            [ValidateSet('Cyan','Green','Red','Yellow')][string]$Color,
-            [string]$Message
-            )
-        begin{
-            $scheme =$null
-            $capred = @{BackgroundColor = "Red"; ForegroundColor = "white"}
-            $capcyan = @{BackgroundColor = "Cyan"; ForegroundColor = "white"}
-            $capgreen = @{BackgroundColor = "Green"; ForegroundColor = "white"}
-            $capYellow = @{BackgroundColor = "Yellow"; ForegroundColor = "Blue"}         
-            }
-        process{
-            try{
-                switch($color){
-                    'red'{$scheme = $capred}
-                    'green'{$scheme = $capgreen}
-                    'cyan' {$scheme =  $capcyan}
-                    'yellow' {$scheme =  $capYellow}
-                    }
-                Write-Host @scheme "`n$Message"
-                            $Message = $null       
+                [Parameter(Mandatory=$false)][ValidateSet('Cyan','Green','Red','Yellow', 'White')][string]$BGColor = 'White',
+                [Parameter(Mandatory=$false)][ValidateSet('Blue', 'Cyan','Green','Red','Yellow','White')][string]$FontColor = 'Blue',
+                [Parameter(Mandatory=$true)][string]$Message2Write
+                )
+            begin{$scheme =$null 
+                $scheme = @{BackgroundColor = $BGColor; ForegroundColor = $FontColor}
                 }
-            catch{Write-Error "$($_.Exception.Message) - Line Number: $($_.InvocationInfo.ScriptLineNumber)"}
-            finally{}        
-           }
+            process{
+                try{Write-Host @scheme "`n`n $Message2Write "}
+                catch{Write-Error "$($_.Exception.Message) - Line Number: $($_.InvocationInfo.ScriptLineNumber)"}
+                finally{}
+                }
             end{}
-        }
+            }
 
 # F2. Create an output folder if not there:
     function makeFolder{
