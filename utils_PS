@@ -12,11 +12,12 @@
     .PARAMETER Message
         The Text to be colored  
     .EXAMPLE
-        coolwrite -Color Red -Message "Hi, This text will be with Red BG"
+        coolwrite -BGColor Green -FontColor red -Message2Write "hi me"
         Or, using spalt:
         $myarg = @{
-            color = 'Red'
-            Message = "Hi, This text will be with Red BG"
+            BGColor = 'Red'
+            FontColor = 'White'
+            Message2Write = "Hi, This text will be with Red BG"
             }
         coolWrite @myarg        
     .NOTES
