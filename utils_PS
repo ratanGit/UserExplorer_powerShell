@@ -1,28 +1,37 @@
 #~~~~~~~~~~ UTILS: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # F1. Find the domain info about a user's logon
-    function whereAmI{
-      .SYNOPSIS
+function whereAmI{
+    <##
+     .SYNOPSIS
         Find the domain info about a user's logon.
     .DESCRIPTION
         Find the domain info about a user's logon by checking $env:username, $env:userDNSDomain and $env:UserDomain
         Does a get-aduser $ev:username to pull Distinguished Name and extracts the OU
-        $u =  $env:USERNAME
-        $uDNSDomain =  $env:USERdnsDOMAIN
-        $uDomain =  $env:USERdnsDOMAIN
-        [System.Collections.ArrayList]$usrArray = ((get-aduser $u).DistinguishedName).split(',')
-        $usrArray.Remove($usrArray[0])
-        $ouPath = ""
-        foreach($str in $usrArray){
-            $ouPath = $ouPath+ ',' + $str
-            }
-        $ouPath = $ouPath.TrimStart(',')
-        
+    .NOTES
+        Author:Ratan Mohapatra
+    ##>
+    $u =  $env:USERNAME
+    $uDNSDomain =  $env:USERdnsDOMAIN
+    $uDomain =  $env:USERdnsDOMAIN
+
+    [System.Collections.ArrayList]$usrArray = ((get-aduser $u).DistinguishedName).split(',')
+
+    $usrArray.Remove($usrArray[0])
+
+$ouPath = ""
+foreach($str in $usrArray){
+    $ouPath = $ouPath+ ',' + $str
+
+    }
+
+$ouPath = $ouPath.TrimStart(',')
         $ArrResults="My Domain Name : $uDomain
         My FQDN : $uDNSDomain
         My OU : $ouPath"
-        
-        return $ArrResults
-        }
+
+    return $ArrResults
+
+}
 
 
 # F2. Create an output folder if not there:
