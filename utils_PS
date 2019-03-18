@@ -25,9 +25,10 @@ foreach($str in $usrArray){
     }
 
 $ouPath = $ouPath.TrimStart(',')
-        $ArrResults="My Domain Name : $uDomain
-        My FQDN : $uDNSDomain
-        My OU : $ouPath"
+        $ArrResults=@{"My Domain Name" = $uDomain
+        "My FQDN" = $uDNSDomain
+        "My OU" = $ouPath
+        }
 
     return $ArrResults
 
